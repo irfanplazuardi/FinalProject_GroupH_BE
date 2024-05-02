@@ -31,7 +31,7 @@ teacher_schema = {
         'maxlength': 255
     },
     'picture': {
-        'type': 'blob', 
+        'type': ['string', 'binary'], 
         'required': False 
     }
 }

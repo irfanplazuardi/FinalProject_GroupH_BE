@@ -2,7 +2,7 @@ from models.student import Student
 from models.teacher import Teacher
 
 from sqlalchemy.orm import sessionmaker
-from connectors.mysql_connector import engine
+from connectors.mysql_connector import engine, db
 from flask_login import login_user, logout_user
 from flask_jwt_extended import create_access_token
 from flask import Blueprint, jsonify, request, redirect
@@ -11,7 +11,7 @@ user_routes_login = Blueprint('user_routes_login', __name__)
 
 connection = engine.connect()
 Session = sessionmaker(connection)
-session = Session()
+session = db.session
 
 @user_routes_login.route("/login", methods=['GET'])
 def user_login():

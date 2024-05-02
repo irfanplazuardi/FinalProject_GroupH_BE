@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  DATABASE:
+    image: mysql:latest
+    restart: always
+    container_name: docker
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: Viole07061999
+      MYSQL_DATABASE: quality_education
+    volumes:
+      - /Viole/REVOU/FP-REVOU/FinalProject_GroupH_BE/docker/db:/var/lib/mysql
+
+

@@ -6,20 +6,19 @@ from flask import Blueprint, request, jsonify
 
 from models.course import Course
 from models.teacher import Teacher
-from connectors.mysql_connector import engine
+from connectors.mysql_connector import engine, db
 from models.teachers_course import TeachersCourse
 from decorators.role_checker import role_required
 
 teachers_course_routes = Blueprint('teachers_course_routes', __name__)
 
-Session = sessionmaker(bind=engine)
+session = db.session
 
 @teachers_course_routes.route("/teachers_course", methods=['GET'])
 @login_required
 @role_required('teacher')
 def get_all_teachers_course():
 
-    session = Session()
 
     try:
         teachers_courses = session.query(TeachersCourse).all()
@@ -38,7 +37,6 @@ def get_all_teachers_course():
 @role_required('teacher')
 def get_teachers_course(teachers_course_id):
 
-    session = Session()
 
     try:
         teachers_course = session.query(TeachersCourse).get(teachers_course_id)
@@ -64,7 +62,6 @@ def create_teachers_course():
     if not teacher_id or not course_id:
         return jsonify({"error": "Invalid form data"}), 400
     
-    session = Session()
 
     try:
 
@@ -108,7 +105,6 @@ def update_teachers_course(teachers_course_id):
     if not teacher_id or not course_id:
         return jsonify({"error": "Invalid form data"}), 400
 
-    session = Session()
     try:
 
         teachers_course = session.query(TeachersCourse).get(teachers_course_id)
@@ -133,7 +129,6 @@ def update_teachers_course(teachers_course_id):
 @login_required
 @role_required('teacher')
 def delete_teachers_course(teachers_course_id):
-    session = Session()
     try:
         teachers_course = session.query(TeachersCourse).get(teachers_course_id)
         if not teachers_course:

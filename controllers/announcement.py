@@ -7,20 +7,19 @@ from flask_login import login_required, current_user
 
 from models.teacher import Teacher
 from models.announcement import Announcement
-from connectors.mysql_connector import engine
+from connectors.mysql_connector import engine, db
 from decorators.role_checker import role_required
 from validations.announcement_schema import announcement_schema
 
 announcement_routes = Blueprint('announcement_routes', __name__)
 
-Session = sessionmaker(bind=engine)
+session = db.session
 
 @announcement_routes.route('/announcement', methods=['GET'])
 @login_required
 @role_required('teacher', 'student')
 def get_announcements():
 
-    session = Session()
 
     try:
 
@@ -42,7 +41,7 @@ def get_announcements():
 @role_required('teacher', 'student')
 def get_announcement(announcement_id):
 
-    session = Session()
+
 
     try:
 
@@ -75,7 +74,6 @@ def create_announcement():
     if not v.validate(json_data):
         return jsonify({"error": v.errors}), 400
     
-    session = Session()
 
     try:
 
@@ -118,7 +116,6 @@ def update_announcement(announcement_id):
     if not v.validate(json_data):
         return jsonify({"error": v.errors}), 400
     
-    session = Session()
 
     try:
 
@@ -145,7 +142,7 @@ def update_announcement(announcement_id):
 @login_required
 @role_required('teacher')
 def delete_announcement(announcement_id):
-    session = Session()
+
     try:
 
         announcement = session.query(Announcement).filter(Announcement.announcement_id == announcement_id).first()

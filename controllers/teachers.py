@@ -5,14 +5,14 @@ from sqlalchemy.exc import IntegrityError
 from flask import Blueprint, request, jsonify
 
 from models.teacher import Teacher
-from connectors.mysql_connector import engine
+from connectors.mysql_connector import engine, db
 from decorators.role_checker import role_required
 from validations.teacher_schema import teacher_schema, update_teacher_schema
 
 
 teacher_routes = Blueprint('teacher_routes', __name__)
 
-Session = sessionmaker(bind=engine)
+session = db.session
 
 @teacher_routes.route('/teachers', methods = ['GET'])
 @login_required
@@ -21,7 +21,7 @@ def get_teachers():
 
     try:
 
-        session = Session()
+
         teachers = session.query(Teacher).all()
         response_data = {"teachers": [teacher.serialize() for teacher in teachers]}
         return jsonify(response_data)
@@ -40,7 +40,7 @@ def get_teacher(teacher_id):
 
     try:
 
-        session = Session()
+
         teacher = session.query(Teacher).filter(Teacher.teacher_id == teacher_id).first()
 
         if not teacher:
@@ -71,7 +71,7 @@ def create_teacher():
     
     try:
 
-        session = Session()
+
         new_teacher = Teacher(
             teacher_name=json_data['teacher_name'],
             teacher_email=json_data['teacher_email'],
@@ -119,7 +119,7 @@ def update_teacher(teacher_id):
 
     try:
 
-        session = Session()
+
 
         teacher = session.query(Teacher).filter(Teacher.teacher_id == teacher_id).first()
 
@@ -159,7 +159,7 @@ def delete_teacher(teacher_id):
 
     try:
 
-        session = Session()
+
 
         teacher = session.query(Teacher).filter(Teacher.teacher_id == teacher_id).first()
 
