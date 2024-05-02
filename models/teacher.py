@@ -71,4 +71,4 @@ class Teacher(Base):
         }
     
     def __repr__(self):
-        return f'<Teacher {self.teacher_id}, teacher_name={self.teacher_name}, teacher_email={self.teacher_email}, teacher_birthday={self.teacher_birthday}, phone={self.phone}, password={self.password}>'
+        return f'<Teacher {self.teacher_id}, teacher_name={self.teacher_name}, teacher_email={self.teacher_email}, teacher_birthday={self.teacher_birthday}, phone={self.phone}, password={self.password}, role={self.role}>'

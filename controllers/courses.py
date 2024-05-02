@@ -6,14 +6,14 @@ from sqlalchemy.exc import IntegrityError
 from flask import Blueprint, request, jsonify
 
 from models.course import Course
-from connectors.mysql_connector import engine
+from connectors.mysql_connector import engine, db
 from models.course_subjects import CourseSubjects
 from decorators.role_checker import role_required
 from validations.course_schema import course_schema, update_course_schema
 
 course_routes = Blueprint('course_routes', __name__)
 
-Session = sessionmaker(bind=engine)
+session = db.session
 
 @course_routes.route('/courses', methods=['GET'])
 @login_required
@@ -22,7 +22,7 @@ def get_courses():
 
     try:
 
-        session = Session()
+
         courses = session.query(Course).all()
         response_data = {"courses": [course.serialize() for course in courses]}
         print(response_data)
@@ -43,7 +43,7 @@ def get_courses():
 def get_course(course_id):
 
     try:
-        session = Session()
+
         course = session.query(Course).filter(Course.course_id == course_id).first()
 
         if not course:
@@ -73,8 +73,6 @@ def create_course():
     
     if not v.validate(form_data):
         return jsonify({"error": v.errors}), 400
-    
-    session = Session()
 
     
     try:
@@ -117,7 +115,7 @@ def update_course(course_id):
         return jsonify({"error": v.errors}), 400
 
     try:
-        session = Session()
+
         course = session.query(Course).filter(Course.course_id == course_id).first()
 
         if not course:
@@ -144,7 +142,7 @@ def update_course(course_id):
 @role_required('teacher')
 def delete_course(course_id):
     try:
-        session = Session()
+
         course = session.query(Course).filter(Course.course_id == course_id).first()
 
         if not course:

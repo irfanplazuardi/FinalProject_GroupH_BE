@@ -5,7 +5,7 @@ from flask import Blueprint, request, jsonify
 from flask_login import current_user, login_required
 
 from models.student import Student
-from connectors.mysql_connector import engine
+from connectors.mysql_connector import engine, db
 from decorators.role_checker import role_required
 from validations.student_schema import student_schema
 from validations.update_student_schema import update_student_schema
@@ -13,14 +13,14 @@ from validations.update_student_schema import update_student_schema
 
 student_routes = Blueprint('student_routes', __name__)
 
-Session = sessionmaker(bind=engine)
+session = db.session
 
 @student_routes.route("/students", methods=['GET'])
 @login_required
 @role_required('student', 'teacher')
 def get_students():
     try:
-        session = Session()
+
         students = session.query(Student).all()
         response_data = {"students": [student.serialize() for student in students]}
         return jsonify(response_data)
@@ -37,7 +37,7 @@ def get_student(student_id):
 
     try:
 
-        session = Session()
+
         student = session.query(Student).filter(Student.student_id == student_id).first()
 
         if not student:
@@ -68,8 +68,6 @@ def create_student():
     if not v.validate(json_data):
         print(v.errors)
         return jsonify({"error": v.errors}), 400
-
-    session = Session()
     
     try:
 
@@ -123,8 +121,6 @@ def update_student(student_id):
     if not v.validate(json_data):
         return jsonify({"error": v.errors}), 400
 
-    session = Session()
-
     try:
 
         student = session.query(Student).filter(Student.student_id == student_id).first()
@@ -170,8 +166,6 @@ def update_student(student_id):
 @login_required
 @role_required('teacher')
 def delete_student(student_id):
-
-    session = Session()
     
     try:
 
