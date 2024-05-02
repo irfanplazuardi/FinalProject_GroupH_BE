@@ -7,14 +7,14 @@ from sqlalchemy.exc import IntegrityError
 from flask import Blueprint, request, jsonify
 
 from models.course import Course
-from connectors.mysql_connector import engine
+from connectors.mysql_connector import engine, db
 from models.course_subjects import CourseSubjects
 from decorators.role_checker import role_required
 from validations.course_subjects_schema import course_subjects_schema
 
 course_subjects_routes = Blueprint('course_subjects_routes', __name__)
 
-Session = sessionmaker(bind=engine)
+session = db.session
 
 
 @course_subjects_routes.route("/course-subjects", methods=['GET'])
@@ -22,7 +22,7 @@ Session = sessionmaker(bind=engine)
 @role_required('student', 'teacher')
 def get_course_subjects():
     try:
-        session = Session()
+        
         course_subjects = session.query(CourseSubjects).all()
         response_data = {"course_subjects": [cs.serialize() for cs in course_subjects]}
         return jsonify(response_data)
@@ -37,7 +37,7 @@ def get_course_subjects():
 @role_required('student', 'teacher')
 def get_course_subject(course_subject_id):
     try:
-        session = Session()
+        
         course_subject = session.query(CourseSubjects).filter(CourseSubjects.course_subject_id == course_subject_id).first()
 
         if not course_subject:
@@ -64,7 +64,7 @@ def create_course_subject():
         return jsonify({"error": v.errors}), 400
     
     try:
-        session = Session()
+        
         new_course_subject = CourseSubjects(
             course_subject=json_data['course_subject']
         )
@@ -99,7 +99,7 @@ def update_course_subject(course_subject_id):
         return jsonify({"error": v.errors}), 400
 
     try:
-        session = Session()
+        
         course_subject = session.query(CourseSubjects).filter(CourseSubjects.course_subject_id == course_subject_id).first()
 
         if not course_subject:
@@ -122,7 +122,7 @@ def update_course_subject(course_subject_id):
 @role_required('teacher')
 def delete_course_subject(course_subject_id):
     try:
-        session = Session()
+        
         course_subject = session.query(CourseSubjects).filter(CourseSubjects.course_subject_id == course_subject_id).first()
 
         if not course_subject:
