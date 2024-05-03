@@ -1,26 +1,25 @@
-FROM python:latest as python-base
+FROM python:3.12-slim as python-base
 
-# https://python-poetry.org/docs#ci-recommendations
 ENV POETRY_VERSION=1.8
 ENV POETRY_HOME=/opt/poetry
 ENV POETRY_VENV=/opt/poetry-venv
-ENV POETRY_CACHE_DIR=/tmp/poetry_cache
 
-# Tell Poetry where to place its cache and virtual environment
-ENV POETRY_CACHE_DIR=/opt/.cache
+ENV DATABASE_USERNAME=root
+ENV DATABASE_PASSWORD=QiQGMDlvPYvHUmXBjFtiLYSIRNXXhcRl
+ENV DATABASE_URL=monorail.proxy.rlwy.net:34808
+ENV DATABASE_NAME=quality_education
+ENV SECRET_KEY=MYSECRETKEY
 
 # Create stage for Poetry installation
 FROM python-base as poetry-base
 
-# Install necessary tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Creating a virtual environment just for poetry and install it with pip
-RUN python3 -m venv $POETRY_VENV \
-    && $POETRY_VENV/bin/pip install -U pip setuptools \
-    && $POETRY_VENV/bin/pip install poetry==${POETRY_VERSION}
+# Retry logic for installing Poetry
+RUN set -e && \
+    for i in 1 2 3; do \
+        python3 -m venv $POETRY_VENV && \
+        $POETRY_VENV/bin/pip install -U pip setuptools && \
+        $POETRY_VENV/bin/pip install poetry==${POETRY_VERSION} && break || sleep 5; \
+    done
 
 # Create a new stage from the base python image
 FROM python-base as example-app
@@ -31,20 +30,20 @@ COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
 # Add Poetry to PATH
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
 
+EXPOSE 8080
+
+COPY . /app
+
 WORKDIR /app
 
 # Copy Dependencies
 COPY poetry.lock pyproject.toml ./
 
-RUN poetry install --no-root && rm -rf $POETRY_CACHE_DIR
+# [OPTIONAL] Validate the project is properly configured
+
+# Install Dependencies
+RUN poetry install --no-root
+
 # Copy Application
-COPY . /app
-
-RUN poetry install
-
-
-EXPOSE 5000
-
 # Run Application
-
-CMD ["poetry", "run", "flask", "run"]
+CMD ["/bin/bash", "docker-entrypoint.sh"]

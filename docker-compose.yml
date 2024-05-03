@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_container
+    restart: always
+    ports:
+      - "34808:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: Viole07061999  
+      MYSQL_DATABASE: quality_education  
+      MYSQL_USER: root  
+      MYSQL_PASSWORD: QiQGMDlvPYvHUmXBjFtiLYSIRNXXhcRl  
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+
+  app:
+    build: .
+    container_name: finalproject
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: QiQGMDlvPYvHUmXBjFtiLYSIRNXXhcRl
+      DATABASE_URL: MySQL 
+      DATABASE_NAME: quality_education
+      SECRET_KEY: MYSECRETKEY
+    depends_on:
+      - mysql  
+
+volumes:
+  mysql_data:
+    driver: local
