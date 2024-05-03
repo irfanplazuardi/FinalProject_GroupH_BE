@@ -14,11 +14,13 @@ username = os.getenv('DATABASE_USERNAME')
 password = os.getenv('DATABASE_PASSWORD')
 host = os.getenv('DATABASE_URL')
 database = os.getenv('DATABASE_NAME')
+port = 34808
 
 # Connect to the database
 print("Connecting to the MySQL Database")
-sql_string = f'mysql+mysqlconnector://{username}:{password}@{host}/{database}'
-engine = create_engine(f'mysql+mysqlconnector://{username}:{password}@{host}/{database}')
+sql_string =  f'mysql+mysqlconnector://{username}:{password}@{host}/{database}'
+
+engine = create_engine(sql_string)
 
 # Test the connection
 connection = engine.connect()
