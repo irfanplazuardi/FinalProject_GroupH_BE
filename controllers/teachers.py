@@ -1,8 +1,10 @@
+import os
 from cerberus import Validator
-from flask_login import login_required
+from flask_jwt_extended import jwt_required
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from flask import Blueprint, request, jsonify
+from werkzeug.utils import secure_filename
 
 from models.teacher import Teacher
 from connectors.mysql_connector import engine, db
@@ -14,14 +16,13 @@ teacher_routes = Blueprint('teacher_routes', __name__)
 
 session = db.session
 
+
 @teacher_routes.route('/teachers', methods = ['GET'])
-@login_required
+@jwt_required()
 @role_required('student', 'teacher')
 def get_teachers():
 
     try:
-
-
         teachers = session.query(Teacher).all()
         response_data = {"teachers": [teacher.serialize() for teacher in teachers]}
         return jsonify(response_data)
@@ -34,7 +35,7 @@ def get_teachers():
         session.close()
 
 @teacher_routes.route("/teachers/<int:teacher_id>", methods=['GET'])
-@login_required
+@jwt_required()
 @role_required('student', 'teacher')
 def get_teacher(teacher_id):
 
@@ -56,7 +57,7 @@ def get_teacher(teacher_id):
         session.close()
 
 @teacher_routes.route("/teachers", methods=['POST'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def create_teacher():
 
@@ -103,57 +104,55 @@ def create_teacher():
         session.close()
 
 @teacher_routes.route("/teachers/<int:teacher_id>", methods=['PUT'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def update_teacher(teacher_id):
+    json_data  = request.get_json()
+
+    if json_data is None:
+        return jsonify({"error": "Invalid JSON data"}), 400
 
     v = Validator(update_teacher_schema)
-    json_data = request.get_json()
-    form_data = request.form
-
-    if not json_data:
-        return jsonify({"error": "Invalid JSON data"}), 400
-    
     if not v.validate(json_data):
         return jsonify({"error": v.errors}), 400
 
     try:
 
-
-
-        teacher = session.query(Teacher).filter(Teacher.teacher_id == teacher_id).first()
+        teacher = session.query(Teacher).filter_by(teacher_id=teacher_id).first()
 
         if not teacher:
             return jsonify({"message": "Teacher not found"}), 404
-        
+
         field_map = {
             "teacher_name": "teacher_name",
             "teacher_email": "teacher_email",
             "teacher_birthday": "teacher_birthday",
             "phone": "phone",
-            "password": "password",
             "picture": "picture",
+            "password": "password",
         }
 
-        for key, attr in field_map.items():
-            if key in json_data:
-                setattr(teacher, attr, json_data[key])
-                
+        for json_key, model_attr in field_map.items():
+            if json_key in json_data:
+                setattr(teacher, model_attr, json_data[json_key])
+
         if 'password' in json_data:
             teacher.set_password(json_data['password'])
 
         session.commit()
+        
         return jsonify({"message": "Data successfully updated"}), 200
     
     except Exception as e:
-        print(f" Error: {e}")
+        print(f"Error updating data: {e}")
+        
         return jsonify({"message": "Error updating data"}), 500
     
     finally:
         session.close()
 
 @teacher_routes.route("/teachers/<int:teacher_id>", methods=['DELETE'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def delete_teacher(teacher_id):
 

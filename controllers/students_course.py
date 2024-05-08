@@ -2,7 +2,7 @@ import os
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
+from flask_jwt_extended import jwt_required, current_user
 
 from models.course import Course
 from models.student import Student
@@ -15,7 +15,7 @@ students_course_routes = Blueprint('students_course_routes', __name__)
 session = db.session
 
 @students_course_routes.route("/students_course", methods=['GET'])
-@login_required
+@jwt_required()
 @role_required('student')
 def get_all_students_course():
 
@@ -33,7 +33,7 @@ def get_all_students_course():
         session.close()
 
 @students_course_routes.route("/students_course/<int:students_course_id>", methods=['GET'])
-@login_required
+@jwt_required()
 @role_required('student')
 def get_students_course(students_course_id):
 
@@ -52,7 +52,7 @@ def get_students_course(students_course_id):
         session.close()
 
 @students_course_routes.route("/students_course", methods=['POST'])
-@login_required
+@jwt_required()
 @role_required('student')
 def create_students_course():
 
@@ -72,7 +72,7 @@ def create_students_course():
             return jsonify({"error": "Invalid student or Course ID"}), 400
         
         new_students_course = StudentsCourse(
-            student_id = current_user.student_id,
+            student_id = current_user['student_id'],
             course_id = course_id
 
         )
@@ -94,7 +94,7 @@ def create_students_course():
         session.close()
     
 @students_course_routes.route("/students_course/<int:students_course_id>", methods=['PUT'])
-@login_required
+@jwt_required()
 @role_required('student')
 def update_students_course(students_course_id):
     
@@ -126,7 +126,7 @@ def update_students_course(students_course_id):
         session.close()
 
 @students_course_routes.route("/students_course/<int:students_course_id>", methods=['DELETE'])
-@login_required
+@jwt_required()
 @role_required('student')
 def delete_students_course(students_course_id):
     try:

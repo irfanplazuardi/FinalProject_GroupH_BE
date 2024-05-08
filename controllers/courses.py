@@ -1,6 +1,6 @@
 import os
 from cerberus import Validator
-from flask_login import login_required
+from flask_jwt_extended import jwt_required
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from flask import Blueprint, request, jsonify
@@ -16,7 +16,7 @@ course_routes = Blueprint('course_routes', __name__)
 session = db.session
 
 @course_routes.route('/courses', methods=['GET'])
-@login_required
+@jwt_required()
 @role_required('student', 'teacher')
 def get_courses():
 
@@ -38,7 +38,7 @@ def get_courses():
         session.close()
 
 @course_routes.route('/courses/<int:course_id>', methods=['GET'])
-@login_required
+@jwt_required()
 @role_required('student', 'teacher')
 def get_course(course_id):
 
@@ -57,32 +57,30 @@ def get_course(course_id):
         session.close()
 
 @course_routes.route("/courses", methods=['POST'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def create_course():
 
     v = Validator(course_schema)
-    # json_data = request.get_json()
-    form_data = request.form
-    print("Form data received:", form_data)
+
+    json_data = request.get_json()
 
 
 
-    if not form_data:
+    if not json_data:
         return jsonify({"error": "Invalid form data"}), 400
     
-    if not v.validate(form_data):
+    if not v.validate(json_data):
         return jsonify({"error": v.errors}), 400
 
     
     try:
 
         new_course = Course(
-            course_name=form_data.get['course_name'],
-            course_subject_id=form_data.get['course_subject_id'],
-            course_description=form_data.get['course_description'],
-            picture=form_data.get('picture'),
-            course_grade=form_data.get['course_grade'],
+            course_name=json_data.get('course_name'),
+            course_subject_id=json_data.get('course_subject_id'),
+            course_description=json_data.get('course_description'),
+            course_grade=json_data.get('course_grade'),
         )
 
         session.add(new_course)
@@ -92,17 +90,17 @@ def create_course():
     except IntegrityError as ie:
         session.rollback()
         print(f"Integrity Error: {ie}")
-        return jsonify({"message": f"Integrity Error: {ie}"})
+        return jsonify({"message": f"Integrity Error: {ie}"}),400
     
     except Exception as e:
         session.rollback()
         print(f"Error: {e}")
-        return jsonify({"message": f"Failed to create new course: {e}"})
+        return jsonify({"message": f"Failed to create new course: {e}"}), 400
     finally:
         session.close()
 
 @course_routes.route("/courses/<int:course_id>", methods=['PUT'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def update_course(course_id):
     v = Validator(update_course_schema)
@@ -122,7 +120,11 @@ def update_course(course_id):
             return jsonify({"message": "Course not found"}), 404
         
         course.course_name = json_data.get('course_name', course.course_name)
-        course.course_subject_id = json_data.get('course_subject_id', course.course_subject)
+        course_subject_id = json_data.get('course_subject_id')
+
+        if course_subject_id is not None:
+            course.course_subject_id = int(course_subject_id)
+            
         course.course_description = json_data.get('course_description', course.course_description)
         course.course_grade = json_data.get('course_grade', course.course_grade)
         course.picture = json_data.get('picture', course.picture)
@@ -138,7 +140,7 @@ def update_course(course_id):
         session.close()
 
 @course_routes.route("/courses/<int:course_id>", methods=['DELETE'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def delete_course(course_id):
     try:

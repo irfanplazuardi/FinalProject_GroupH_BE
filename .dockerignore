@@ -33,4 +33,4 @@
 LICENSE
 README.md
 screenshots/
-tests/
+**/tests/
