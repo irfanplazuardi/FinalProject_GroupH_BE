@@ -1,7 +1,7 @@
 
 import os
 from cerberus import Validator
-from flask_login import login_required
+from flask_jwt_extended import jwt_required
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from flask import Blueprint, request, jsonify
@@ -18,7 +18,7 @@ session = db.session
 
 
 @course_subjects_routes.route("/course-subjects", methods=['GET'])
-@login_required
+@jwt_required()
 @role_required('student', 'teacher')
 def get_course_subjects():
     try:
@@ -33,7 +33,7 @@ def get_course_subjects():
         session.close()
 
 @course_subjects_routes.route("/course-subjects/<int:course_subject_id>", methods=['GET'])
-@login_required
+@jwt_required()
 @role_required('student', 'teacher')
 def get_course_subject(course_subject_id):
     try:
@@ -51,7 +51,7 @@ def get_course_subject(course_subject_id):
         session.close()
 
 @course_subjects_routes.route("/course-subjects", methods=['POST'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def create_course_subject():
     v = Validator(course_subjects_schema)
@@ -86,7 +86,7 @@ def create_course_subject():
         session.close()
 
 @course_subjects_routes.route("/course-subjects/<int:course_subject_id>", methods=['PUT'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def update_course_subject(course_subject_id):
     v = Validator(course_subjects_schema)
@@ -118,7 +118,7 @@ def update_course_subject(course_subject_id):
         session.close()
 
 @course_subjects_routes.route("/course-subjects/<int:course_subject_id>", methods=['DELETE'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def delete_course_subject(course_subject_id):
     try:

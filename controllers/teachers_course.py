@@ -1,5 +1,5 @@
 import os
-from flask_login import login_required
+from flask_jwt_extended import jwt_required
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from flask import Blueprint, request, jsonify
@@ -15,7 +15,7 @@ teachers_course_routes = Blueprint('teachers_course_routes', __name__)
 session = db.session
 
 @teachers_course_routes.route("/teachers_course", methods=['GET'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def get_all_teachers_course():
 
@@ -33,7 +33,7 @@ def get_all_teachers_course():
         session.close()
 
 @teachers_course_routes.route("/teachers_course/<int:teachers_course_id>", methods=['GET'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def get_teachers_course(teachers_course_id):
 
@@ -52,7 +52,7 @@ def get_teachers_course(teachers_course_id):
         session.close()
 
 @teachers_course_routes.route("/teachers_course", methods=['POST'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def create_teachers_course():
 
@@ -94,7 +94,7 @@ def create_teachers_course():
         session.close()
     
 @teachers_course_routes.route("/teachers_course/<int:teachers_course_id>", methods=['PUT'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def update_teachers_course(teachers_course_id):
     
@@ -126,7 +126,7 @@ def update_teachers_course(teachers_course_id):
         session.close()
 
 @teachers_course_routes.route("/teachers_course/<int:teachers_course_id>", methods=['DELETE'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def delete_teachers_course(teachers_course_id):
     try:

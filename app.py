@@ -1,15 +1,16 @@
 from dotenv import load_dotenv
-from flask import Flask, jsonify
+from flask import Flask, jsonify, redirect, request
 from waitress import serve
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from connectors.mysql_connector import engine, connection, db, sql_string
 from sqlalchemy.orm import sessionmaker
+from flask_cors import CORS
 
 import os
 from models.student import Student
 from models.teacher import Teacher
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, current_user
 from flask_login import LoginManager
 
 from controllers.courses import course_routes
@@ -26,8 +27,11 @@ from controllers.students_course import students_course_routes
 
 
 load_dotenv()
+
+
 def create_app():
     app=Flask(__name__)
+    CORS(app)
 
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
     app.config['JWT_SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -35,36 +39,54 @@ def create_app():
 
     # JWT
     jwt = JWTManager(app)
-
     db.init_app(app)
-
     migrate = Migrate(app, db)
+
 
     with app.app_context():
         db.create_all()
 
 
+    @jwt.user_lookup_loader
+    def load_user(jwt_header, jwt_data):
+        user_id = jwt_data["sub"]
+        user_role = jwt_data.get("role") 
 
-
-    # LOGIN SESSION
-    login_manager = LoginManager()
-    login_manager.init_app(app)
-
-    @login_manager.user_loader
-    def load_user(user_id):
         connection = engine.connect()
         Session = sessionmaker(connection)
         session = Session()
 
-        student = session.query(Student).filter_by(student_id=int(user_id)).first()
-        if student:
-            session.close()
-            return student
-        
+        try:
 
-        teacher = session.query(Teacher).filter_by(teacher_id=int(user_id)).first()
-        session.close()
-        return teacher
+            if user_role == "teacher":
+
+                teacher = session.query(Teacher).filter_by(teacher_id=user_id).first()
+                if teacher:
+                    return teacher.serialize()
+            elif user_role == "student":
+
+                student = session.query(Student).filter_by(student_id=user_id).first()
+                if student:
+                    return student.serialize()
+
+            return None
+        
+        finally:
+
+            session.close()
+    
+    @app.route("/protected", methods=["GET"])
+    @jwt_required()
+    def protected_route():
+
+        return jsonify({
+            "message": "protected - route",
+            "user": {
+                "id": current_user.student_id if hasattr(current_user, "student_id") else current_user.teacher_id,
+                "name": current_user.student_name if hasattr(current_user, "student_name") else current_user.teacher_name,
+                "role": "student" if hasattr(current_user, "student_id") else "teacher"                
+            }
+        }),200
 
     app.register_blueprint(student_routes)
     app.register_blueprint(teacher_routes)
@@ -81,32 +103,25 @@ def create_app():
     # Product Route
     @app.route("/")
     def hello_world():
-
-        Session = sessionmaker(connection)
-        with Session() as session:
-
-
-            students = session.query(Student).all()
-            student_data = [{"ID": student.student_id, "Name": student.student_name} for student in students]
-
-
-            teachers = session.query(Teacher).all()
-            teacher_data = [{"ID": teacher.teacher_id, "Name": teacher.teacher_name} for teacher in teachers]
-
-
-        data = {
-            "students": student_data,
-            "teachers": teacher_data
-        }
-        
-
-        return jsonify(data)
-
-    if __name__ == "__main__":
-        try:
-            serve(app, host="0.0.0.0", port=8080)
-        except Exception as e:
-            print(f"Terjadi kesalahan saat menjalankan server: {e}")
+        document_url = "https://documenter.getpostman.com/view/32945632/2sA3JFCQyG"
+        return redirect(document_url)
 
     return app
+
+if __name__ == "__main__":
+
+    app = create_app()
+    try:
+
+        port = os.getenv("PORT", default=8080)
+
+        if not port.isdigit():
+            port=8080
+        port = int(port)
+
+        serve(app, host="0.0.0.0", port=port)
+
+    except Exception as e:
+        print(f"Terjadi kesalahan saat menjalankan server: {e}")
+
 

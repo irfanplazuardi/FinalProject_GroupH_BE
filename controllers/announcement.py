@@ -3,7 +3,7 @@ from cerberus import Validator
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
+from flask_jwt_extended import jwt_required, current_user
 
 from models.teacher import Teacher
 from models.announcement import Announcement
@@ -16,7 +16,7 @@ announcement_routes = Blueprint('announcement_routes', __name__)
 session = db.session
 
 @announcement_routes.route('/announcement', methods=['GET'])
-@login_required
+@jwt_required()
 @role_required('teacher', 'student')
 def get_announcements():
 
@@ -37,7 +37,7 @@ def get_announcements():
 
 
 @announcement_routes.route('/announcement/<int:announcement_id>', methods=['GET'])
-@login_required
+@jwt_required()
 @role_required('teacher', 'student')
 def get_announcement(announcement_id):
 
@@ -61,7 +61,7 @@ def get_announcement(announcement_id):
 
 
 @announcement_routes.route('/announcement', methods=['POST'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def create_announcement():
 
@@ -78,9 +78,9 @@ def create_announcement():
     try:
 
         new_announcement = Announcement(
-            teacher_id=current_user.teacher_id,
+            teacher_id=current_user['teacher_id'],
             announcement_desc=json_data['announcement_desc'],
-            created_by=current_user.teacher_name
+            created_by=current_user['teacher_name']
         )
 
         session.add(new_announcement)
@@ -103,7 +103,7 @@ def create_announcement():
 
 
 @announcement_routes.route('/announcement/<int:announcement_id>', methods=['PUT'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def update_announcement(announcement_id):
 
@@ -139,7 +139,7 @@ def update_announcement(announcement_id):
 
 
 @announcement_routes.route('/announcement/<int:announcement_id>', methods=['DELETE'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def delete_announcement(announcement_id):
 
