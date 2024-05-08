@@ -43,7 +43,7 @@ def do_registration():
 
         existing_student = session.query(Student).filter_by(student_email=student_email).first()
         if existing_student:
-            return jsonify({"Already have Account, go to LOGIN"}), 400
+            return jsonify({"error": "Already have Account, go to LOGIN"}), 400
         
 
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -63,12 +63,12 @@ def do_registration():
         try:
             session.add(new_student)
             session.commit()
-            
-
-            return redirect(url_for('user_routes_login.do_user_login'))
         
+            return new_student.serialize()
+
         except IntegrityError:
             session.rollback()
-            return "Failed to register user. Please try again."
+            return jsonify({"error": "Failed to register user. Please try again."}), 500
+        
         finally:
             session.close()

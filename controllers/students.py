@@ -2,13 +2,12 @@ from cerberus import Validator
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from flask import Blueprint, request, jsonify
-from flask_login import current_user, login_required
+from flask_jwt_extended import jwt_required, current_user
 
 from models.student import Student
 from connectors.mysql_connector import engine, db
 from decorators.role_checker import role_required
-from validations.student_schema import student_schema
-from validations.update_student_schema import update_student_schema
+from validations.student_schema import student_schema, update_student_schema
 
 
 student_routes = Blueprint('student_routes', __name__)
@@ -16,7 +15,7 @@ student_routes = Blueprint('student_routes', __name__)
 session = db.session
 
 @student_routes.route("/students", methods=['GET'])
-@login_required
+@jwt_required()
 @role_required('student', 'teacher')
 def get_students():
     try:
@@ -31,7 +30,7 @@ def get_students():
         session.close()
 
 @student_routes.route("/students/<int:student_id>", methods=['GET'])
-@login_required
+@jwt_required()
 @role_required('student', 'teacher')
 def get_student(student_id):
 
@@ -53,7 +52,7 @@ def get_student(student_id):
 
 
 @student_routes.route("/students", methods=['POST'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def create_student():
 
@@ -71,7 +70,7 @@ def create_student():
     
     try:
 
-        if current_user.role != 'teacher':
+        if current_user['role'] != 'teacher':
             return jsonify({"error": "Forbidden: Only teachers can create new student data"}), 403
 
         new_student = Student(
@@ -107,7 +106,7 @@ def create_student():
         session.close()
 
 @student_routes.route("/students/<int:student_id>", methods=['PUT'])
-@login_required
+@jwt_required()
 @role_required('student', 'teacher')
 def update_student(student_id):
 
@@ -128,10 +127,8 @@ def update_student(student_id):
         if not student:
             return jsonify({"message": "Student not found"}), 404
 
-        if current_user.role == 'student' and student.student_id != current_user.student_id:
+        if current_user['role'] == 'student' and student.student_id != current_user['student_id']:
             return jsonify({"message": "Unauthorized"}), 403
-        
-
         
 
         field_map = {
@@ -163,7 +160,7 @@ def update_student(student_id):
         session.close()
 
 @student_routes.route("/students/<int:student_id>", methods=['DELETE'])
-@login_required
+@jwt_required()
 @role_required('teacher')
 def delete_student(student_id):
     

@@ -1,49 +1,40 @@
-FROM python:3.12-slim as python-base
+# Gunakan gambar Python resmi
+FROM python:3.12-slim
 
+# Set variabel lingkungan untuk Poetry dan versi yang diinginkan
 ENV POETRY_VERSION=1.8
 ENV POETRY_HOME=/opt/poetry
 ENV POETRY_VENV=/opt/poetry-venv
 
+# Atur variabel lingkungan yang diperlukan untuk aplikasi
 ENV DATABASE_USERNAME=root
 ENV DATABASE_PASSWORD=QiQGMDlvPYvHUmXBjFtiLYSIRNXXhcRl
 ENV DATABASE_URL=monorail.proxy.rlwy.net:34808
 ENV DATABASE_NAME=quality_education
 ENV SECRET_KEY=MYSECRETKEY
 
-# Create stage for Poetry installation
-FROM python-base as poetry-base
+# Instal Poetry
+RUN python3 -m venv $POETRY_VENV && \
+    $POETRY_VENV/bin/pip install --upgrade pip setuptools && \
+    $POETRY_VENV/bin/pip install poetry==${POETRY_VERSION}
 
-# Retry logic for installing Poetry
-RUN set -e && \
-    for i in 1 2 3; do \
-        python3 -m venv $POETRY_VENV && \
-        $POETRY_VENV/bin/pip install -U pip setuptools && \
-        $POETRY_VENV/bin/pip install poetry==${POETRY_VERSION} && break || sleep 5; \
-    done
-
-# Create a new stage from the base python image
-FROM python-base as example-app
-
-# Copy Poetry to app image
-COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
-
-# Add Poetry to PATH
+# Tambahkan Poetry ke PATH
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
 
-EXPOSE 8080
-
-COPY . /app
-
+# Set direktori kerja
 WORKDIR /app
 
-# Copy Dependencies
-COPY poetry.lock pyproject.toml ./
+# Salin file yang diperlukan ke dalam gambar
+COPY poetry.lock pyproject.toml /app/
 
-# [OPTIONAL] Validate the project is properly configured
-
-# Install Dependencies
+# Instal dependencies
 RUN poetry install --no-root
 
-# Copy Application
-# Run Application
+# Salin seluruh kode aplikasi ke direktori kerja
+COPY . /app
+
+# Tentukan port yang akan dibuka
+EXPOSE 8080
+
+# Gunakan CMD untuk menjalankan aplikasi
 CMD ["/bin/bash", "docker-entrypoint.sh"]

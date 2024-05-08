@@ -7,6 +7,7 @@ import os
 class Base(DeclarativeBase):
     pass
 
+
 db = SQLAlchemy(model_class=Base)
 
 

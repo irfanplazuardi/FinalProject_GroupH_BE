@@ -33,6 +33,9 @@ teacher_schema = {
     'picture': {
         'type': ['string', 'binary'], 
         'required': False 
+    },
+    'role': {
+        'type': 'string'
     }
 }
 
@@ -51,7 +54,7 @@ update_teacher_schema = {
         'minlength': 5,
         'maxlength': 50
     },
-    'teacher_birthday': {
+    'birthday': {
         'type': 'date',
         'required': False
     },
