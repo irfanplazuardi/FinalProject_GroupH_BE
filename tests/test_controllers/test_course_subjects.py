@@ -7,8 +7,8 @@ from datetime import datetime
 def login(client):
 
     data = {
-        'input_value': 'samuel',
-        'password': '87654321',
+        'input_value': 'sad',
+        'password': '12345678',
         'role_as': 'teacher'
     }
     response = client.post('/login', json=data)

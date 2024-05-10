@@ -9,7 +9,7 @@ from tests.conftest import client, test_session
 def test_login_success(client):
 
     login_data = {
-        "input_value": "samuel",
+        "input_value": "sammy",
         "password": "12345678",
         "role_as": "teacher"
     }
