@@ -1,16 +1,12 @@
 import pytest
 from flask import json
 from models.course import Course
-from models.course_subjects import CourseSubjects
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import IntegrityError
-from unittest.mock import MagicMock, patch
 
 def login(client):
 
     data = {
-        'input_value': 'samuel',
-        'password': '87654321',
+        'input_value': 'sad',
+        'password': '12345678',
         'role_as': 'teacher'
     }
     response = client.post('/login', json=data)

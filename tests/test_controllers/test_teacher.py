@@ -6,8 +6,8 @@ from models.teacher import Teacher
 
 def login(client):
     response = client.post('/login', json={
-        'input_value': 'samuel',
-        'password': '87654321',
+        'input_value': 'sad',
+        'password': '12345678',
         'role_as': 'teacher'
     })
     print("Login response status code:", response.status_code)
