@@ -9,23 +9,23 @@ created by : Samuel Alvian Mahardika
 ## Folder Structure
 
 This is some of my VSC folder structure: 
-
- - **FINALPROJECT/**
-    - **.venv/**
-    - **assets/**
-    - **connectors/** # make connection to app.py and database, creating API
-        - **mysql_connector.py**
-    - **controllers/** # all query logics main code
-    - **decorators/** # my role checker logic
-    - **migrations/** 
-    - **models/** # my Base model and relationship between tables from database
-    - **tests/** # testing query code logic, role checker, and login required (jwt token).
-    - **validations/** # Schema to creating new data and UPDATE data. 
-- **.env** # pass code to access database and hosting.
-- **app.py** # all connected routes and load user placed here
-- **requirements.py** #all dependencies I use stored here
-- **Dockerfile** #code to docker deployment needs
-
+```
+ |-- FINALPROJECT/
+ |   ├── .venv/
+ |   ├── assets/
+ |   ├── connectors/           # make connection to app.py and database, creating API
+ |       └── mysql_connector.py
+ |   ├── controllers/          # all query logics main code
+ |   ├── decorators/           # my role checker logic
+ |   ├── migrations/ 
+ |   ├── models/               # my Base model and relationship between tables from database
+ |   ├── tests/                # testing query code logic, role checker, and login required (jwt token).
+ |   ├── validations/          # Schema to creating new data and UPDATE data. 
+ |-- .env                      # pass code to access database and hosting.
+ |-- app.py                    # all connected routes and load user placed here
+ |-- requirements.py           # all dependencies I use stored here
+ |-- Dockerfile                # code to docker deployment needs
+```
 
 ### 1. Github Project BACKEND Link: [Github-Backend](https://github.com/irfanplazuardi/FinalProject_GroupH_BE.git)
 
